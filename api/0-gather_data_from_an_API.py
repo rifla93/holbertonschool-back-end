@@ -1,37 +1,30 @@
 #!/usr/bin/python3
-"""Module to fetch data from a REST API and display an employee's TODO list progress"""
+"""
+Model to make a request to an API and retrieve data
+"""
 
+
+import json
 import requests
-import sys
+from sys import argv
 
-def get_employee_todo_progress(employee_id):
-    """Fetch and print an employee's TODO list progress
-
-    Args:
-        employee_id (int): The ID of the employee
-
-    Returns:
-        None
-    """
-    # Fetch user data
-    user_response = requests.get(f'https://jsonplaceholder.typicode.com/users/{employee_id}')
-    user_data = user_response.json()
-    employee_name = user_data.get('name')
-
-    # Fetch todo data
-    todos_response = requests.get(f'https://jsonplaceholder.typicode.com/users/{employee_id}/todos')
-    todos_data = todos_response.json()
-
-    # Calculate progress
-    total_tasks = len(todos_data)
-    done_tasks = len([todo for todo in todos_data if todo.get('completed')])
-    task_list = [todo.get('title') for todo in todos_data if todo.get('completed')]
-
-    # Print progress
-    print(f'Employee {employee_name} is done with tasks({done_tasks}/{total_tasks}):')
-    for task in task_list:
-        print('\t ' + task)
 
 if __name__ == "__main__":
-    employee_id = int(sys.argv[1])
-    get_employee_todo_progress(employee_id)
+    URL = "https://jsonplaceholder.typicode.com/"
+    user_id = argv[1]
+    res = requests.get(f"{URL}users/{argv[1]}")
+    res = res.json()
+    user_name = res['name']
+
+    res = requests.get(f"{URL}todos")
+    all_todos = res.json()
+    user_todos = [todo for todo in all_todos if todo['userId'] == int(argv[1])]
+    nr_tasks = len(user_todos)
+    completed_tasks = [completed for completed in user_todos
+                       if completed['completed'] is True]
+    completed_title = [title['title'] for title in completed_tasks]
+
+    print(f"Employee {user_name} is done", end="")
+    print(f" with tasks({len(completed_tasks)}/{nr_tasks}):")
+    for title in completed_title:
+        print(f"\t {title}")
